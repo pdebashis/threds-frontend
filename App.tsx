@@ -4,6 +4,48 @@ import { BOARDS, MAX_THREDS_PER_BOARD, MAX_POSTS_PER_THREAD } from './constants'
 import { Button } from './components/Button';
 import { api } from './services/api';
 
+// --- URL Routing Functions ---
+
+interface RouteState {
+  isHomeView: boolean;
+  currentBoard?: BoardType;
+  activeThreadId?: string;
+}
+
+const parseUrlRoute = (): RouteState => {
+  const path = window.location.pathname;
+  
+  // Remove leading/trailing slashes
+  const segments = path.split('/').filter(Boolean);
+  
+  if (segments.length === 0) {
+    return { isHomeView: true };
+  }
+  
+  if (segments[0] === 'board' && segments[1]) {
+    const boardId = segments[1] as BoardType;
+    if (segments[2] === 'thread' && segments[3]) {
+      return { isHomeView: false, currentBoard: boardId, activeThreadId: segments[3] };
+    }
+    return { isHomeView: false, currentBoard: boardId };
+  }
+  
+  return { isHomeView: true };
+};
+
+const updateUrl = (route: RouteState) => {
+  let path = '/';
+  
+  if (!route.isHomeView && route.currentBoard) {
+    path = `/board/${route.currentBoard}`;
+    if (route.activeThreadId) {
+      path += `/thread/${route.activeThreadId}`;
+    }
+  }
+  
+  window.history.pushState({ ...route }, '', path);
+};
+
 // --- Helper Functions ---
 
 const scrollToPost = (postId: string) => {
@@ -188,14 +230,41 @@ const PostItem: React.FC<{
 // --- Main Application ---
 
 export default function App() {
-  const [currentBoard, setCurrentBoard] = useState<BoardType>(BoardType.WORK);
-  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  // Initialize state from URL
+  const initialRoute = parseUrlRoute();
+  
+  const [currentBoard, setCurrentBoard] = useState<BoardType>(initialRoute.currentBoard || BoardType.WORK);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(initialRoute.activeThreadId || null);
   const [activeThread, setActiveThread] = useState<Thread | null>(null);
-  const [isHomeView, setIsHomeView] = useState<boolean>(true);
+  const [isHomeView, setIsHomeView] = useState<boolean>(initialRoute.isHomeView);
   const [isOnline, setIsOnline] = useState<boolean>(false);
   
   // State for threds, loaded from localStorage if available
   const [threds, setThreds] = useState<Thread[]>([]);
+
+  // Sync URL when navigation state changes
+  useEffect(() => {
+    updateUrl({ isHomeView, currentBoard, activeThreadId: activeThreadId || undefined });
+  }, [isHomeView, currentBoard, activeThreadId]);
+
+  // Handle browser back/forward buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      const route = parseUrlRoute();
+      setIsHomeView(route.isHomeView);
+      if (route.currentBoard) {
+        setCurrentBoard(route.currentBoard);
+      }
+      if (route.activeThreadId) {
+        setActiveThreadId(route.activeThreadId);
+      } else {
+        setActiveThreadId(null);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Fetch threds whenever the board changes
   useEffect(() => {
