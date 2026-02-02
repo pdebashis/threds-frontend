@@ -192,6 +192,7 @@ export default function App() {
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [activeThread, setActiveThread] = useState<Thread | null>(null);
   const [isHomeView, setIsHomeView] = useState<boolean>(true);
+  const [isOnline, setIsOnline] = useState<boolean>(false);
   
   // State for threds, loaded from localStorage if available
   const [threds, setThreds] = useState<Thread[]>([]);
@@ -227,6 +228,17 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [isDarkMode]);
+
+  // Check backend status
+  useEffect(() => {
+    const checkStatus = async () => {
+      const isUp = await api.checkStatus();
+      setIsOnline(isUp);
+    };
+
+    // Check once on mount
+    checkStatus();
+  }, []);
 
   // Form States
   const [isCreatingThred, setIsCreatingThred] = useState(false);
@@ -384,7 +396,7 @@ export default function App() {
           <div className="animate-fade-in bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8">
             <div className="mb-8 border-b border-gray-100 dark:border-gray-700 pb-4">
               <h1 className="text-2xl font-bold dark:text-white font-mono">|-Threds_Directory</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">Status: Online | Account: Anonymous</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-mono mt-1">Status: {isOnline ? 'Online' : 'Offline'} | Account: Anonymous</p>
             </div>
             
             <div className="space-y-6 font-mono text-sm sm:text-base">

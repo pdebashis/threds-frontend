@@ -66,5 +66,15 @@ export const api = {
     });
     const post = await res.json();
     return toCamelCase(post);
+  },
+
+  // Check if Rails backend is online
+  async checkStatus() {
+    try {
+      const res = await fetch(`${API_BASE}/up`, { method: 'GET' });
+      return res.ok;
+    } catch {
+      return false;
+    }
   }
 };
