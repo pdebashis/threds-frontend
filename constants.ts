@@ -17,12 +17,12 @@ export const BOARDS: BoardConfig[] = [
     description: 'Chaos, memes, and everything in between.',
     icon: 'fa-shuffle',
     color: 'text-orange-600 dark:text-orange-400'
-  },
-  {
-    id: BoardType.TRAVEL,
-    label: 'Travel',
-    description: 'Outside world and adventures.',
-    icon: 'fa-plane',
-    color: 'text-teal-600 dark:text-teal-400'
   }
+  // {
+  //   id: BoardType.TRAVEL,
+  //   label: 'Travel',
+  //   description: 'Outside world and adventures.',
+  //   icon: 'fa-plane',
+  //   color: 'text-teal-600 dark:text-teal-400'
+  // }
 ];
